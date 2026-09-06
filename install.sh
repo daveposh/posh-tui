@@ -4,21 +4,15 @@
 
 set -e
 
-REPO="https://github.com/daveposh/posh-tui"
 INSTALL_DIR="$HOME/.posh-tui"
 BIN_DIR="$HOME/.local/bin"
 
 echo "Installing posh-tui..."
 
-# Clone or update repo
-if [ -d "$INSTALL_DIR" ]; then
-    echo "Updating existing installation..."
-    cd "$INSTALL_DIR"
-    git pull
-else
-    echo "Cloning repository..."
-    git clone "$REPO" "$INSTALL_DIR"
-fi
+# Download files directly
+mkdir -p "$INSTALL_DIR"
+curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/master/posh_tui.py -o "$INSTALL_DIR/posh_tui.py"
+curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/master/README.md -o "$INSTALL_DIR/README.md"
 
 # Install Python dependencies
 echo "Installing dependencies..."
