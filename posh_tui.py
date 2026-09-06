@@ -174,10 +174,17 @@ class ProfileManagerApp(App):
             table.add_row(name, model_short, str(profile["temperature"]), str(profile["context_length"]), key=name)
 
     def on_data_table_row_selected(self, event):
-        """Handle profile selection."""
+        """Handle profile selection via row click."""
         name = event.row_key
         self.selected_profile = name
         self.show_profile_details(name)
+
+    def on_data_table_cursor_moved(self, event):
+        """Handle profile selection via cursor move."""
+        name = event.row_key
+        if name and name != self.selected_profile:
+            self.selected_profile = name
+            self.show_profile_details(name)
 
     def show_profile_details(self, name):
         """Show details for selected profile."""
