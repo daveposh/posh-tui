@@ -11,18 +11,27 @@ echo "Installing posh-tui..."
 
 # Download files directly
 mkdir -p "$INSTALL_DIR"
-curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/master/posh_tui.py -o "$INSTALL_DIR/posh_tui.py"
-curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/master/README.md -o "$INSTALL_DIR/README.md"
+curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/main/posh_tui.py -o "$INSTALL_DIR/posh_tui.py"
+curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/main/README.md -o "$INSTALL_DIR/README.md"
 
 # Install Python dependencies
 echo "Installing dependencies..."
 if command -v pip3 &>/dev/null; then
     pip3 install --quiet textual
-elif command -v python3 &>/dev/null && python3 -m pip --version &>/dev/null; then
+elif command -v python3 &>/dev/null && python3 -m pip --version &>/dev/null 2>&1; then
     python3 -m pip install --quiet textual
 else
-    echo "pip not found. Installing pip..."
-    curl -fsSL https://bootstrap.pypa.io/get-pip.py | python3
+    echo "pip not found. Trying to install via apt..."
+    if command -v apt-get &>/dev/null; then
+        sudo apt-get update -qq && sudo apt-get install -y -qq python3-pip
+    elif command -v dnf &>/dev/null; then
+        sudo dnf install -y python3-pip
+    elif command -v pacman &>/dev/null; then
+        sudo pacman -Sy --noconfirm python-pip
+    else
+        echo "No package manager found. Trying get-pip.py..."
+        curl -fsSL https://bootstrap.pypa.io/get-pip.py | python3
+    fi
     python3 -m pip install --quiet textual
 fi
 

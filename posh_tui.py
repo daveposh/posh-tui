@@ -103,7 +103,7 @@ class ProfileManagerApp(App):
     CSS = """
     Header { color: #00ff00; background: #000000; }
     Footer { color: #00ff00; background: #000000; }
-    .profile-name { color: #00aaff; font-weight: bold; }
+    .profile-name { color: #00aaff; text-style: bold; }
     .status { color: #00ff00; }
     Button { margin: 1 0; }
     """
@@ -253,6 +253,18 @@ class ProfileManagerApp(App):
         
         os.chmod(output_file, 0o755)
         self.notify(f"Exported to {output_file}", severity="info")
+
+    def action_new_profile(self):
+        self.create_new_profile()
+
+    def action_edit_profile(self):
+        self.edit_selected_profile()
+
+    def action_run_profile(self):
+        self.run_selected_profile()
+
+    def action_delete_profile(self):
+        self.delete_selected_profile()
 
 
 if __name__ == "__main__":
