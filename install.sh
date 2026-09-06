@@ -5,48 +5,33 @@
 set -e
 
 INSTALL_DIR="$HOME/.posh-tui"
+VENV_DIR="$INSTALL_DIR/.venv"
 BIN_DIR="$HOME/.local/bin"
 
 echo "Installing posh-tui..."
 
-# Download files directly
+# Download files
 mkdir -p "$INSTALL_DIR"
 curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/main/posh_tui.py -o "$INSTALL_DIR/posh_tui.py"
 curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/main/README.md -o "$INSTALL_DIR/README.md"
 
-# Install Python dependencies
+# Create virtual environment
+echo "Creating virtual environment..."
+python3 -m venv "$VENV_DIR"
+
+# Install dependencies in venv
 echo "Installing dependencies..."
+"$VENV_DIR/bin/pip" install --quiet --upgrade pip
+"$VENV_DIR/bin/pip" install --quiet textual
 
-if command -v apt-get &>/dev/null; then
-    sudo apt-get update -qq && sudo apt-get install -y -qq python3-pip
-    pip3 install --quiet textual
-elif command -v dnf &>/dev/null; then
-    sudo dnf install -y python3-pip
-    python3 -m pip install --quiet textual
-elif command -v pacman &>/dev/null; then
-    # Arch: pip exists but is externally-managed, use --break-system-packages
-    sudo pacman -Sy --noconfirm python-pip
-    pip install --break-system-packages --quiet textual
-else
-    # Try pip directly, fall back to get-pip.py
-    if command -v pip3 &>/dev/null; then
-        pip3 install --quiet textual
-    elif command -v python3 &>/dev/null; then
-        python3 -m pip install --quiet textual
-    else
-        echo "Installing pip..."
-        curl -fsSL https://bootstrap.pypa.io/get-pip.py | python3
-        python3 -m pip install --quiet textual
-    fi
-fi
-
-# Create symlink
-echo "Creating symlink..."
+# Create launcher script
+echo "Creating launcher..."
 mkdir -p "$BIN_DIR"
-ln -sf "$INSTALL_DIR/posh_tui.py" "$BIN_DIR/posh-tui"
-
-# Make executable
-chmod +x "$INSTALL_DIR/posh_tui.py"
+cat > "$BIN_DIR/posh-tui" << LAUNCHER
+#!/bin/bash
+exec "$VENV_DIR/bin/python" "$INSTALL_DIR/posh_tui.py" "\$@"
+LAUNCHER
+chmod +x "$BIN_DIR/posh-tui"
 
 echo ""
 echo "posh-tui installed successfully!"
