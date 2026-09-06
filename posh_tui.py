@@ -4,7 +4,7 @@
 A terminal UI for managing model profiles, settings, and launching Unsloth
 with saved configurations. Features native mouse support via Textual.
 
-Project: https://github.com/yourusername/posh-tui
+Project: https://github.com/daveposh/posh-tui
 """
 
 import json
@@ -15,24 +15,26 @@ from pathlib import Path
 
 try:
     from textual.app import App, ComposeResult
-    from textual.containers import Container, Vertical, Horizontal
-    from textual.widgets import (
-        Button, Header, Footer, DataTable, Input, Select, 
-        Static, Tab, Tabs, TabPane, Checkbox, Label, TextArea
-    )
-    from textual.binding import Binding
-    from textual.events import Click
-except ImportError:
-    print("Installing textual...")
-    subprocess.run([sys.executable, "-m", "pip", "install", "textual", "-q"])
-    from textual.app import App, ComposeResult
-    from textual.containers import Container, Vertical, Horizontal
+    from textual.containers import Container, Vertical, Horizontal, Grid
     from textual.widgets import (
         Button, Header, Footer, DataTable, Input, Select,
         Static, Tab, Tabs, TabPane, Checkbox, Label, TextArea
     )
     from textual.binding import Binding
     from textual.events import Click
+    from textual.widgets._input import Input
+except ImportError:
+    print("Installing textual...")
+    subprocess.run([sys.executable, "-m", "pip", "install", "textual", "-q"])
+    from textual.app import App, ComposeResult
+    from textual.containers import Container, Vertical, Horizontal, Grid
+    from textual.widgets import (
+        Button, Header, Footer, DataTable, Input, Select,
+        Static, Tab, Tabs, TabPane, Checkbox, Label, TextArea
+    )
+    from textual.binding import Binding
+    from textual.events import Click
+    from textual.widgets._input import Input
 
 # Profile storage
 PROFILES_FILE = Path.home() / ".unsloth" / "profiles.json"
@@ -54,6 +56,7 @@ DEFAULT_PROFILE = {
     "ubatch_size": 512,
     "reasoning_effort": "medium",
     "port": 8888,
+    "api_endpoint": "http://127.0.0.1:8888/v1",
     "description": ""
 }
 
@@ -99,15 +102,21 @@ def build_unsloth_command(profile):
 
 class ProfileManagerApp(App):
     """Unsloth Profile Manager TUI."""
-    
+
     CSS = """
     Header { color: #00ff00; background: #000000; }
     Footer { color: #00ff00; background: #000000; }
     .profile-name { color: #00aaff; text-style: bold; }
     .status { color: #00ff00; }
+    .api-endpoint { color: #00ff88; text-style: bold; }
+    .setting-row { margin: 0 0; }
     Button { margin: 1 0; }
+    #profile-list { height: 60%; border: solid #00aaff; }
+    #profile-details { height: 100%; border: solid #00ff88; }
+    #settings-panel { height: 100%; border: solid #ff8800; }
+    #api-panel { height: 15%; border: solid #00ff88; }
     """
-    
+
     BINDINGS = [
         Binding("q", "quit", "Quit"),
         Binding("n", "new_profile", "New Profile"),
@@ -115,78 +124,97 @@ class ProfileManagerApp(App):
         Binding("r", "run_profile", "Run Profile"),
         Binding("d", "delete_profile", "Delete Profile"),
     ]
-    
+
     def __init__(self):
         super().__init__()
         self.profiles = load_profiles()
         self.selected_profile = None
-    
+
     def compose(self) -> ComposeResult:
         yield Header()
-        
-        # Main layout
-        with Container():
-            # Profile list
-            with Vertical():
+
+        # Split layout: left = profile list, right = settings
+        with Container(id="main-container"):
+            with Vertical(id="profile-list"):
                 yield Static("Profiles:", id="profile-header")
                 yield DataTable(id="profiles-table")
-            
-            # Profile details
-            with Vertical():
-                yield Static("Profile Details:", id="details-header")
-                yield Static("Select a profile to view details", id="details")
-            
-            # Action buttons
-            with Horizontal():
+
+            with Vertical(id="profile-details"):
+                yield Static("Profile Settings:", id="details-header")
+                yield Container(id="settings-panel")
+                yield Container(id="api-panel")
+
+            # Action buttons at bottom
+            with Horizontal(id="action-bar"):
                 yield Button("New", id="btn-new")
                 yield Button("Edit", id="btn-edit")
                 yield Button("Run", id="btn-run")
                 yield Button("Delete", id="btn-delete")
                 yield Button("Export", id="btn-export")
-        
+
         yield Footer()
-    
+
     def on_mount(self):
         self.refresh_profile_table()
-    
+
     def refresh_profile_table(self):
         """Refresh the profiles table."""
         table = self.query_one("#profiles-table", DataTable)
         table.clear()
         table.add_columns("Name", "Model", "Temp", "Context")
-        
+
         for name, profile in self.profiles.items():
             model_short = profile["model"][:30] + "..." if len(profile["model"]) > 30 else profile["model"]
             table.add_row(name, model_short, str(profile["temperature"]), str(profile["context_length"]))
-    
+
     def on_data_table_row_selected(self, event):
         """Handle profile selection."""
         name = event.row_key
         self.selected_profile = name
         self.show_profile_details(name)
-    
+
     def show_profile_details(self, name):
         """Show details for selected profile."""
         profile = self.profiles[name]
-        details = self.query_one("#details", Static)
-        
-        lines = [f"[bold]{name}[/bold]"]
-        for key, value in profile.items():
-            if key != "name":
-                lines.append(f"{key}: {value}")
-        
-        # Show API connection info prominently
+
+        # Build settings form on right side
+        settings_panel = self.query_one("#settings-panel", Container)
+        settings_panel.remove_children()
+
+        # Model
+        settings_panel.mount(Label(f"[bold]{name}[/bold]"))
+        settings_panel.mount(Label(f"Model: {profile['model'][:40]}..."))
+
+        # Temperature
+        settings_panel.mount(Label(f"Temperature: {profile['temperature']}"))
+        # Top-p
+        settings_panel.mount(Label(f"Top-p: {profile['top_p']}"))
+        # Top-k
+        settings_panel.mount(Label(f"Top-k: {profile['top_k']}"))
+        # Context
+        settings_panel.mount(Label(f"Context: {profile['context_length']}"))
+        # KV Cache
+        settings_panel.mount(Label(f"KV Cache: {profile['kv_cache_type']}"))
+        # GPU Layers
+        settings_panel.mount(Label(f"GPU Layers: {profile['gpu_layers']}"))
+        # Flash Attention
+        settings_panel.mount(Label(f"Flash Attention: {'On' if profile['flash_attention'] else 'Off'}"))
+        # Reasoning Effort
+        settings_panel.mount(Label(f"Reasoning Effort: {profile['reasoning_effort']}"))
+        # Port
+        settings_panel.mount(Label(f"Port: {profile['port']}"))
+
+        # API Connection Panel
+        api_panel = self.query_one("#api-panel", Container)
+        api_panel.remove_children()
         api_url = profile.get("api_endpoint", f"http://127.0.0.1:{profile['port']}/v1")
-        lines.append("")
-        lines.append(f"[bold cyan]API Endpoint:[/bold cyan] {api_url}")
-        lines.append(f"[bold cyan]Connection String:[/bold cyan] OPENAI_BASE_URL={api_url}")
-        
-        details.update("\n".join(lines))
-    
+        api_panel.mount(Label(f"[bold cyan]API Endpoint:[/bold cyan] {api_url}"))
+        api_panel.mount(Label(f"[bold cyan]Connection String:[/bold cyan] OPENAI_BASE_URL={api_url}"))
+
     def on_button_pressed(self, event):
         """Handle button clicks."""
         button_id = event.button.id
-        
+
         if button_id == "btn-new":
             self.create_new_profile()
         elif button_id == "btn-edit":
@@ -197,7 +225,7 @@ class ProfileManagerApp(App):
             self.delete_selected_profile()
         elif button_id == "btn-export":
             self.export_selected_profile()
-    
+
     def create_new_profile(self):
         """Create a new profile."""
         name = "coding"
@@ -207,56 +235,55 @@ class ProfileManagerApp(App):
         save_profiles(self.profiles)
         self.refresh_profile_table()
         self.notify(f"Profile '{name}' created", severity="info")
-    
+
     def edit_selected_profile(self):
         """Edit selected profile."""
         if not self.selected_profile:
             self.notify("Select a profile first", severity="warning")
             return
-        
+
         profile = self.profiles[self.selected_profile]
-        # In a full implementation, this would open an edit dialog
         self.notify(f"Edit {self.selected_profile} (not implemented)", severity="info")
-    
+
     def run_selected_profile(self):
         """Run selected profile."""
         if not self.selected_profile:
             self.notify("Select a profile first", severity="warning")
             return
-        
+
         profile = self.profiles[self.selected_profile]
         cmd = build_unsloth_command(profile)
-        
+
         self.notify(f"Running {self.selected_profile} on port {profile['port']}", severity="info")
         subprocess.Popen(cmd)
-    
+
     def delete_selected_profile(self):
         """Delete selected profile."""
         if not self.selected_profile:
             self.notify("Select a profile first", severity="warning")
             return
-        
+
         del self.profiles[self.selected_profile]
         save_profiles(self.profiles)
         self.selected_profile = None
         self.refresh_profile_table()
         self.notify("Profile deleted", severity="info")
-    
+
     def export_selected_profile(self):
         """Export selected profile to script."""
         if not self.selected_profile:
             self.notify("Select a profile first", severity="warning")
             return
-        
+
         profile = self.profiles[self.selected_profile]
         output_file = f"~/unsloth-{self.selected_profile}.sh"
         cmd = build_unsloth_command(profile)
-        
+
         with open(output_file, "w") as f:
             f.write("#!/bin/bash\n")
             f.write(f"# Unsloth profile: {self.selected_profile}\n\n")
             f.write(" ".join(cmd) + "\n")
-        
+
         os.chmod(output_file, 0o755)
         self.notify(f"Exported to {output_file}", severity="info")
 
@@ -276,4 +303,3 @@ class ProfileManagerApp(App):
 if __name__ == "__main__":
     app = ProfileManagerApp()
     app.run()
-
