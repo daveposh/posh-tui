@@ -13,7 +13,7 @@ A polished terminal UI for managing Unsloth model profiles with native mouse sup
 ## Installation
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/master/install.sh | bash
 ```
 
 ## Usage

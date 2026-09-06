@@ -1,6 +1,6 @@
 #!/bin/bash
 # posh-tui installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/main/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/master/install.sh | bash
 
 set -e
 
@@ -22,11 +22,11 @@ if [ -d "$INSTALL_DIR/.git" ]; then
     echo "  Updating repository..."
     cd "$INSTALL_DIR"
     git fetch origin
-    git reset --hard origin/main
+    git reset --hard origin/master
 else
     echo "  Cloning repository..."
     rm -rf "$INSTALL_DIR"
-    git clone --quiet https://github.com/daveposh/posh-tui.git "$INSTALL_DIR"
+    git clone --quiet --branch master https://github.com/daveposh/posh-tui.git "$INSTALL_DIR"
 fi
 
 NEW_VERSION=$(cd "$INSTALL_DIR" && git rev-parse --short HEAD)

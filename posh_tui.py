@@ -17,7 +17,7 @@ from pathlib import Path
 if len(sys.argv) > 1 and sys.argv[1] == "update":
     print("Updating posh-tui...")
     install_script = subprocess.check_output(
-        "curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/main/install.sh",
+        "curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/master/install.sh",
         shell=True, text=True
     )
     with open("/tmp/posh-tui-install.sh", "w") as f:
