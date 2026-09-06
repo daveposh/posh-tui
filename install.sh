@@ -1,6 +1,6 @@
 #!/bin/bash
 # posh-tui installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/82b725de83e2970b69dea680d81570fed6cc3e08/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/main/install.sh | bash
 
 set -e
 
@@ -16,23 +16,28 @@ curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/main/README.md -o
 
 # Install Python dependencies
 echo "Installing dependencies..."
-if command -v pip3 &>/dev/null; then
+
+if command -v apt-get &>/dev/null; then
+    sudo apt-get update -qq && sudo apt-get install -y -qq python3-pip
     pip3 install --quiet textual
-elif command -v python3 &>/dev/null && python3 -m pip --version &>/dev/null 2>&1; then
+elif command -v dnf &>/dev/null; then
+    sudo dnf install -y python3-pip
     python3 -m pip install --quiet textual
+elif command -v pacman &>/dev/null; then
+    # Arch: pip exists but is externally-managed, use --break-system-packages
+    sudo pacman -Sy --noconfirm python-pip
+    pip install --break-system-packages --quiet textual
 else
-    echo "pip not found. Trying to install via apt..."
-    if command -v apt-get &>/dev/null; then
-        sudo apt-get update -qq && sudo apt-get install -y -qq python3-pip
-    elif command -v dnf &>/dev/null; then
-        sudo dnf install -y python3-pip
-    elif command -v pacman &>/dev/null; then
-        sudo pacman -Sy --noconfirm python-pip
+    # Try pip directly, fall back to get-pip.py
+    if command -v pip3 &>/dev/null; then
+        pip3 install --quiet textual
+    elif command -v python3 &>/dev/null; then
+        python3 -m pip install --quiet textual
     else
-        echo "No package manager found. Trying get-pip.py..."
+        echo "Installing pip..."
         curl -fsSL https://bootstrap.pypa.io/get-pip.py | python3
+        python3 -m pip install --quiet textual
     fi
-    python3 -m pip install --quiet textual
 fi
 
 # Create symlink
