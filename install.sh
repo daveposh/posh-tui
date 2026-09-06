@@ -16,7 +16,15 @@ curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/master/README.md 
 
 # Install Python dependencies
 echo "Installing dependencies..."
-python3 -m pip install --quiet textual
+if command -v pip3 &>/dev/null; then
+    pip3 install --quiet textual
+elif command -v python3 &>/dev/null && python3 -m pip --version &>/dev/null; then
+    python3 -m pip install --quiet textual
+else
+    echo "pip not found. Installing pip..."
+    curl -fsSL https://bootstrap.pypa.io/get-pip.py | python3
+    python3 -m pip install --quiet textual
+fi
 
 # Create symlink
 echo "Creating symlink..."
