@@ -178,6 +178,7 @@ class ProfileManagerApp(App):
         name = event.row_key
         self.selected_profile = name
         self.show_profile_details(name)
+        self.notify(f"Selected profile: {name}", severity="information")
 
     def on_data_table_cursor_moved(self, event):
         """Handle profile selection via cursor move."""
