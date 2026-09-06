@@ -1,6 +1,6 @@
 #!/bin/bash
 # posh-tui installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/master/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/82b725de83e2970b69dea680d81570fed6cc3e08/install.sh | bash
 
 set -e
 
