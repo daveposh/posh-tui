@@ -16,7 +16,7 @@ curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/master/README.md 
 
 # Install Python dependencies
 echo "Installing dependencies..."
-pip install --quiet textual
+python3 -m pip install --quiet textual
 
 # Create symlink
 echo "Creating symlink..."
