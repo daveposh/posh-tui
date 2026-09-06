@@ -1,10 +1,10 @@
 #!/bin/bash
 # posh-tui installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/yourusername/posh-tui/main/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/master/install.sh | bash
 
 set -e
 
-REPO="https://github.com/yourusername/posh-tui"
+REPO="https://github.com/daveposh/posh-tui"
 INSTALL_DIR="$HOME/.posh-tui"
 BIN_DIR="$HOME/.local/bin"
 
