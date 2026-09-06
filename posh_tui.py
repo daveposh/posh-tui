@@ -175,6 +175,12 @@ class ProfileManagerApp(App):
             if key != "name":
                 lines.append(f"{key}: {value}")
         
+        # Show API connection info prominently
+        api_url = profile.get("api_endpoint", f"http://127.0.0.1:{profile['port']}/v1")
+        lines.append("")
+        lines.append(f"[bold cyan]API Endpoint:[/bold cyan] {api_url}")
+        lines.append(f"[bold cyan]Connection String:[/bold cyan] OPENAI_BASE_URL={api_url}")
+        
         details.update("\n".join(lines))
     
     def on_button_pressed(self, event):
