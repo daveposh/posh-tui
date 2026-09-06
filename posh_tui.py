@@ -171,7 +171,7 @@ class ProfileManagerApp(App):
 
         for name, profile in self.profiles.items():
             model_short = profile["model"][:30] + "..." if len(profile["model"]) > 30 else profile["model"]
-            table.add_row(name, model_short, str(profile["temperature"]), str(profile["context_length"]))
+            table.add_row(name, model_short, str(profile["temperature"]), str(profile["context_length"]), key=name)
 
     def on_data_table_row_selected(self, event):
         """Handle profile selection."""
