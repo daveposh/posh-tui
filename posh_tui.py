@@ -13,6 +13,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Handle CLI args for update
+if len(sys.argv) > 1 and sys.argv[1] == "update":
+    print("Updating posh-tui...")
+    subprocess.run(["bash", "-c", "curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/main/install.sh | bash"], shell=True)
+    sys.exit(0)
+
 try:
     from textual.app import App, ComposeResult
     from textual.containers import Container, Vertical, Horizontal, Grid
