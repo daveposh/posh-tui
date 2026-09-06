@@ -22,8 +22,8 @@ elif command -v python3 &>/dev/null && python3 -m pip --version &>/dev/null; the
     python3 -m pip install --quiet textual
 else
     echo "pip not found. Installing pip..."
-    curl -fsSL https://bootstrap.pypa.io/get-pip.py | python3 --break-system-packages
-    python3 -m pip install --quiet textual --break-system-packages
+    curl -fsSL https://bootstrap.pypa.io/get-pip.py | python3
+    python3 -m pip install --quiet textual
 fi
 
 # Create symlink
