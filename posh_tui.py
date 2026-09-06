@@ -16,12 +16,19 @@ from pathlib import Path
 # Handle CLI args for update
 if len(sys.argv) > 1 and sys.argv[1] == "update":
     print("Updating posh-tui...")
-    subprocess.run(["bash", "-c", "curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/main/install.sh | bash"], shell=True)
+    install_script = subprocess.check_output(
+        "curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/main/install.sh",
+        shell=True, text=True
+    )
+    with open("/tmp/posh-tui-install.sh", "w") as f:
+        f.write(install_script)
+    subprocess.run(["bash", "/tmp/posh-tui-install.sh"], check=True)
+    os.remove("/tmp/posh-tui-install.sh")
     sys.exit(0)
 
 try:
     from textual.app import App, ComposeResult
-    from textual.containers import Container, Vertical, Horizontal, Grid
+    from textual.containers import Container, Vertical, Horizontal
     from textual.widgets import (
         Button, Header, Footer, DataTable, Input, Select,
         Static, Tab, Tabs, TabPane, Checkbox, Label, TextArea
@@ -33,7 +40,7 @@ except ImportError:
     print("Installing textual...")
     subprocess.run([sys.executable, "-m", "pip", "install", "textual", "-q"])
     from textual.app import App, ComposeResult
-    from textual.containers import Container, Vertical, Horizontal, Grid
+    from textual.containers import Container, Vertical, Horizontal
     from textual.widgets import (
         Button, Header, Footer, DataTable, Input, Select,
         Static, Tab, Tabs, TabPane, Checkbox, Label, TextArea
@@ -248,7 +255,7 @@ class ProfileManagerApp(App):
         self.profiles[name] = profile
         save_profiles(self.profiles)
         self.refresh_profile_table()
-        self.notify(f"Profile '{name}' created", severity="info")
+        self.notify(f"Profile '{name}' created", severity="information")
 
     def edit_selected_profile(self):
         """Edit selected profile."""
@@ -257,7 +264,7 @@ class ProfileManagerApp(App):
             return
 
         profile = self.profiles[self.selected_profile]
-        self.notify(f"Edit {self.selected_profile} (not implemented)", severity="info")
+        self.notify(f"Edit {self.selected_profile} (not implemented)", severity="information")
 
     def run_selected_profile(self):
         """Run selected profile."""
@@ -268,7 +275,7 @@ class ProfileManagerApp(App):
         profile = self.profiles[self.selected_profile]
         cmd = build_unsloth_command(profile)
 
-        self.notify(f"Running {self.selected_profile} on port {profile['port']}", severity="info")
+        self.notify(f"Running {self.selected_profile} on port {profile['port']}", severity="information")
         subprocess.Popen(cmd)
 
     def delete_selected_profile(self):
@@ -281,7 +288,7 @@ class ProfileManagerApp(App):
         save_profiles(self.profiles)
         self.selected_profile = None
         self.refresh_profile_table()
-        self.notify("Profile deleted", severity="info")
+        self.notify("Profile deleted", severity="information")
 
     def export_selected_profile(self):
         """Export selected profile to script."""
@@ -299,7 +306,7 @@ class ProfileManagerApp(App):
             f.write(" ".join(cmd) + "\n")
 
         os.chmod(output_file, 0o755)
-        self.notify(f"Exported to {output_file}", severity="info")
+        self.notify(f"Exported to {output_file}", severity="information")
 
     def action_new_profile(self):
         self.create_new_profile()

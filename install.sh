@@ -10,22 +10,41 @@ BIN_DIR="$HOME/.local/bin"
 
 echo "Installing posh-tui..."
 
-# Download files
-mkdir -p "$INSTALL_DIR"
-curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/main/posh_tui.py -o "$INSTALL_DIR/posh_tui.py"
-curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/main/README.md -o "$INSTALL_DIR/README.md"
+# Check current version
+if [ -d "$INSTALL_DIR/.git" ]; then
+    echo "  Current version: $(cd "$INSTALL_DIR" && git rev-parse --short HEAD 2>/dev/null || echo 'unknown')"
+else
+    echo "  No previous installation found"
+fi
+
+# Clone or update the repository
+if [ -d "$INSTALL_DIR/.git" ]; then
+    echo "  Updating repository..."
+    cd "$INSTALL_DIR"
+    git fetch origin
+    git reset --hard origin/main
+else
+    echo "  Cloning repository..."
+    rm -rf "$INSTALL_DIR"
+    git clone --quiet https://github.com/daveposh/posh-tui.git "$INSTALL_DIR"
+fi
+
+NEW_VERSION=$(cd "$INSTALL_DIR" && git rev-parse --short HEAD)
+echo "  Installed version: $NEW_VERSION"
 
 # Create virtual environment
-echo "Creating virtual environment..."
-python3 -m venv "$VENV_DIR"
+if [ ! -d "$VENV_DIR" ]; then
+    echo "  Creating virtual environment..."
+    python3 -m venv "$VENV_DIR"
+fi
 
 # Install dependencies in venv
-echo "Installing dependencies..."
+echo "  Installing dependencies..."
 "$VENV_DIR/bin/pip" install --quiet --upgrade pip
 "$VENV_DIR/bin/pip" install --quiet textual
 
 # Create launcher script
-echo "Creating launcher..."
+echo "  Creating launcher..."
 mkdir -p "$BIN_DIR"
 cat > "$BIN_DIR/posh-tui" << LAUNCHER
 #!/bin/bash
@@ -34,8 +53,8 @@ LAUNCHER
 chmod +x "$BIN_DIR/posh-tui"
 
 echo ""
-echo "posh-tui installed successfully!"
+echo "posh-tui installed successfully! (version $NEW_VERSION)"
 echo "Run 'posh-tui' to start."
 echo ""
-echo "To update: run 'posh-tui update' or run this installer again"
+echo "To update: run 'posh-tui update'"
 echo "To uninstall: rm -rf $INSTALL_DIR && rm $BIN_DIR/posh-tui"
