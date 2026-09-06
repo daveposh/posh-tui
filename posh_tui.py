@@ -174,6 +174,8 @@ class ProfileManagerApp(App):
 
     def on_mount(self):
         self.refresh_profile_table()
+        # Focus the profile table so keyboard navigation works immediately
+        self.query_one("#profiles-table", DataTable).focus()
 
     def refresh_profile_table(self):
         """Refresh the profiles table."""
