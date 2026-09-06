@@ -15,14 +15,19 @@ from pathlib import Path
 
 # Handle CLI args for update
 if len(sys.argv) > 1 and sys.argv[1] == "update":
-    print("Updating posh-tui...")
+    branch = "master"
+    if "-b" in sys.argv:
+        idx = sys.argv.index("-b")
+        if idx + 1 < len(sys.argv):
+            branch = sys.argv[idx + 1]
+    print(f"Updating posh-tui to branch: {branch}...")
     install_script = subprocess.check_output(
         "curl -fsSL https://raw.githubusercontent.com/daveposh/posh-tui/master/install.sh",
         shell=True, text=True
     )
     with open("/tmp/posh-tui-install.sh", "w") as f:
         f.write(install_script)
-    subprocess.run(["bash", "/tmp/posh-tui-install.sh"], check=True)
+    subprocess.run(["bash", "/tmp/posh-tui-install.sh", "-b", branch], check=True)
     os.remove("/tmp/posh-tui-install.sh")
     sys.exit(0)
 
