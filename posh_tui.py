@@ -133,6 +133,7 @@ class ProfileManagerApp(App):
     #profile-details { height: 100%; border: solid #00ff88; }
     #settings-panel { height: 100%; border: solid #ff8800; }
     #api-panel { height: 15%; border: solid #00ff88; }
+    #branch-info { color: #888888; text-align: right; }
     """
 
     BINDINGS = [
@@ -176,6 +177,7 @@ class ProfileManagerApp(App):
         self.refresh_profile_table()
         # Focus the profile table so keyboard navigation works immediately
         self.query_one("#profiles-table", DataTable).focus()
+        self.show_branch_info()
 
     def refresh_profile_table(self):
         """Refresh the profiles table."""
@@ -326,6 +328,26 @@ class ProfileManagerApp(App):
 
     def action_delete_profile(self):
         self.delete_selected_profile()
+
+    def show_branch_info(self):
+        """Show current git branch in header."""
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                capture_output=True, text=True, timeout=5,
+                cwd=Path(__file__).parent
+            )
+            branch = result.stdout.strip()
+            result = subprocess.run(
+                ["git", "rev-parse", "--short", "HEAD"],
+                capture_output=True, text=True, timeout=5,
+                cwd=Path(__file__).parent
+            )
+            commit = result.stdout.strip()
+            self.title = f"posh-tui ({branch} {commit})"
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":
