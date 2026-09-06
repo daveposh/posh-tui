@@ -189,14 +189,14 @@ class ProfileManagerApp(App):
             model_short = profile["model"][:30] + "..." if len(profile["model"]) > 30 else profile["model"]
             table.add_row(name, model_short, str(profile["temperature"]), str(profile["context_length"]), key=name)
 
-    def on_profiles_table_row_selected(self, event):
-        """Handle profile selection via row click."""
+    def on_data_table_row_selected(self, event):
+        """Handle profile selection via Enter key on row."""
         name = event.row_key
         self.selected_profile = name
         self.show_profile_details(name)
         self.notify(f"Selected profile: {name}", severity="information")
 
-    def on_profiles_table_cursor_moved(self, event):
+    def on_data_table_cursor_moved(self, event):
         """Handle profile selection via cursor move."""
         name = event.row_key
         if name and name != self.selected_profile:
